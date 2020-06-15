@@ -1,4 +1,4 @@
-function [x, converged,iter_cnt,res_norms] = gcr(A, b, res_tol, m)
+function [x, converged,iter_cnt,res_norms] = orthomin(A, b, res_tol, m,k)
   n = size(A, 1);
   x = zeros(n, 1);  
   r = b - A * x;
@@ -14,7 +14,7 @@ function [x, converged,iter_cnt,res_norms] = gcr(A, b, res_tol, m)
     alpha=(r'*A*p(:,j))./((A*p(:,j))'*(A*p(:,j)));
     x=x+alpha*p(:,j);
     r=r-alpha*A*p(:,j);
-    for i=1:j
+    for i=max((j-k+1),1):j
       beta=-((A*r)'*A*p(:,i))./((A*p(:,i))'*A*p(:,i))*p(:,i);
       pom=pom+beta;
     endfor

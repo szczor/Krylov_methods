@@ -21,8 +21,8 @@ function [x, converged, iter_cnt, res_norms] = gmres(A, b, res_tol, max_iter,res
 				z = z - 2 * W(:, j) * (W(:, j)' * z);
 			end
 		else
-      [V,H,beta] = arnoldi0(A,restart,r)
-      [y, resvec] = leastsquare(H, beta)
+      [V,H,beta] = arnoldi0(A,restart,r);
+      [y, resvec] = leastsquare(H, beta);
       z = V(:, 1 : restart) * y(1 : restart);
     end
     x = x + z;

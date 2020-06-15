@@ -1,4 +1,4 @@
-function [x, converged,iter_cnt,res_norms] = gcr(A, b, res_tol, m)
+function [x, converged,iter_cnt,res_norms] = orthodir(A, b, res_tol, m)
   n = size(A, 1);
   x = zeros(n, 1);  
   r = b - A * x;
@@ -15,10 +15,10 @@ function [x, converged,iter_cnt,res_norms] = gcr(A, b, res_tol, m)
     x=x+alpha*p(:,j);
     r=r-alpha*A*p(:,j);
     for i=1:j
-      beta=-((A*r)'*A*p(:,i))./((A*p(:,i))'*A*p(:,i))*p(:,i);
+      beta=-((A*A*p(:,j))'*A*p(:,i))./((A*p(:,i))'*A*p(:,i))*p(:,i);
       pom=pom+beta;
     endfor
-    p(:,j+1)=r+pom;
+    p(:,j+1)=A*p(:,j)+pom;
     pom=zeros(n,1);
     res_norms(j) = norm(r,2);
 		if (res_norms(j) < stop_res)

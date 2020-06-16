@@ -1,0 +1,192 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage{blindtext}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{mathabx}
+\usepackage{apacite}
+\usepackage{subfiles}
+\usepackage{amstext} % for \text macro
+\usepackage{array}
+\usepackage{amsthm}% for \newcolumntype macro
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{etoolbox}
+\usepackage{placeins}
+\usepackage[parfill]{parskip}
+\usepackage[]{algorithm2e}
+\usepackage{empheq}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\title{Wybrane metody Kryłowa}
+\author{Ryszard Eggink} 
+\date{Czerwiec 2020}
+\newtheoremstyle{custom}%    <name>
+                {\topsep}%   <space above>
+                {\topsep}%   <space below>
+                {\itshape}%  <body font>
+                {}%          <indent amount>
+                {\bfseries}% <Theorem head font>
+                {.}%         <punctuation after theorem head>
+                {\newline}%  <space after theorem head> (default .5em)
+                {}%          <Theorem head spec>
+\newtheorem{tw}{Twierdzenie}[section]
+\newtheorem{lem}{Lemat}[section]
+\newtheorem*{przy*}{Przykład}
+\newtheorem{stw}{Stwierdzenie}[section]
+\newtheorem{wniosek}{Wniosek}
+\newtheorem{alg}{Algorytm}
+\newenvironment{manualtheorem}[1]{%
+  \renewcommand\thealg{#1}%
+  \alg
+}{\endalg}
+\theoremstyle{plain}
+\newtheorem*{dow*}{Dowód}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\DeclareMathOperator\Ric{Ric} 
+\DeclareMathOperator*{\argmin}{arg\,min}
+\renewcommand*{\proofname}{Dowód}
+\renewcommand{\abstractname}{Abstrakt}
+\numberwithin{equation}{section}
+\begin{document}
+\maketitle
+\begin{abstract}
+W tej pracy analizowane są metody Kryłowa z książki "Iterative Methods for Sparse Linear Systems" \cite{saad2003iterative} i testowane na wybranym zadaniu eliptycznym.
+\end{abstract}
+\section{Problem testowy}
+\subsection{Zadanie jednowymiarowe}
+Będziemy testować algorytmy na problemach równań różniczkowych cząstkowych, najpierw jednowymiarowym, potem dwuwymiarowym. Za pomocą różnic skończonych można zamienić takie zadanie do układu równań liniowych.
+Rozpatrzmy następujące zadanie:
+\begin{equation}
+\begin{split}
+u''(x)+bu'(x)+cu(x)&=f (x)\:\:\:\forall x\in\Omega=[d,e] \\
+u(d)&=\alpha\\
+u(e)&=\beta
+\end{split}
+\end{equation}
+dla ustalonej stałej $b$ oraz $c>0$, ustalonego odcinka $[d,e]$ oraz znanych wartości $\alpha$, $\beta$.
+Będziemy przybliżać pierwszą i drugą pochodną za pomocą różnic skończonych:
+\begin{equation}
+\begin{split}
+&\partial_{h}u(x)=\frac{u(x+h)-u(x)}{h}\\
+&\partial\overline{\partial}_{h}u(x)=\frac{u(x-h)-2u(x)+u(x+h)}{h^2}
+\end{split}
+\end{equation}
+Wprowadzamy siatkę dla $h=\frac{e-d}{N}$:
+$$\overline{\Omega}=\{d+kh\}_{k=0}^N,$$
+z $\Omega_h=\{d+kh\}_{k=1}^{N-1}$ oraz $\partial\Omega_h=\{d+kh\}_{k=\{0,N}=\{d,e\}$, możemy wówczas zdefiniować następujące zadanie: znaleźć funkcję $u_h$ określoną na siatce $\overline{\Omega}_h$ taką, że 
+\begin{empheq}[left ={\empheqlbrace}]{alignat* = 2}
+-\partial\overline{\partial}_{h}u_{h}(x)+b\partial_{h}u_{h}(x)+cu_{h}(x)=f(x)\:\:\:&x\in\Omega_{h}, \\
+u(x)=g(x)\:\:\: &x\in\partial\Omega_{h},
+\end{empheq}
+gdzie $g:\partial\Omega\rightarrow\mathbb{R}$ przyjmuje wartości $g(d)=\alpha$, $g(e)=\beta$. Sprowadzimy teraz powyższe równania do postaci macierzowej. Przyjmiemy następujące oznaczenia $u_k=u_h(x_k)=u_h(d+kh)$ oraz $f(x_k)=f_k$ dostajemy następujący układ równań liniowych:
+\begin{empheq}[left ={\empheqlbrace}]{alignat* = 2}
+\frac{-u_{k-1}+2u_k-u_{k+1}}{h^2}+\frac{b(u_{k+1}-u_k)}{h}+cu_k&=f_k \\
+u_0&=g(d)\\
+u_N&=g(e)
+\end{empheq}
+Przekształcając do postaci macierzowej otrzymujemy:
+\begin{align*}
+\begin{pmatrix}
+2-bh+ch^2 & bh-1& 0 & \cdots & a_{1,N-1} \\
+-1 & 2-bh+ch^2&bh-1 & \cdots & a_{2,N} \\
+\vdots  &\ddots& \ddots  & \ddots & \vdots  \\
+0 & 0 &-1&  & 2-bh+ch^2&bh-1 
+\end{pmatrix}
+\begin{bmatrix}
+  u_{1,1}  \\
+  u_{1,2}  \\
+  \vdots \\
+  u_{1,N-1}  \\
+  u_{2,1}  \\
+  u_{2,2}  \\
+  \vdots \\
+  u_{N-1,N-2}  \\
+  u_{N-1,N-1}  \\
+\end{bmatrix} =
+\begin{bmatrix}
+f_{1,1}+\frac{g(d,f)}{h_1^2}+\frac{g(d,f)}{h_2^2}  \\
+  f_{1,2}+\frac{g(d,f+2h_2)}{h_2^2}  \\
+  \vdots \\
+  f_{1,N-1}+\frac{g(d,f+(N-1)h_2)}{h_2^2}  \\
+  f_{2,1}+\frac{g(d+2h_1,f)}{h_1^2}  \\
+  f_{2,2}  \\
+  \vdots \\
+  f_{N-1,N-2}+\frac{g(e,f+(N-2)h_2)}{h_1^2}  \\
+  f_{N-1,N-1}+\frac{g(e,g)}{h_1^2}+\frac{g(e,g)}{h_2^2}  \\
+\end{bmatrix}
+\end{align*}
+\subsection{Zadanie dwuwymiarowe}
+Rozważmy zadanie eliptyczne dwuwymiarowe na prostokącie $\overline{\Omega}=[d,e]\times [f,g]$. Zadanie polega na znalezieniu $u\in C^2(\Omega)\cap C(\overline{\Omega})$ takiego, że
+\begin{equation}
+\begin{split}
+\Delta u(x)+&b^T\nabla u(x)+cu(x)=f (x)\:\:\:\forall x\in\Omega \\
+&u(s)=g(s)\:\:\: s\in \partial \Omega,
+\end{split}
+\end{equation}
+gdzie $\Delta u(x)=\sum_{k=1}^{2}\frac{\partial^2u}{\partial x^2_k}$, $b$ to dany wektor, $c>0$ jest ustaloną stałą, $f$ to funkcja ciągła na $\Omega$, a $g$ to funkcja ciągła na $\partial\Omega$.
+
+Dla ustalonego kroku $h>0$ będziemy aproksymować pierwszą i drugą pochodną cząstkową:
+\begin{equation}
+\begin{split}
+&\partial_{k,h}u(x)=\frac{u(x+he_k)-u(x)}{h}\\
+&\partial\overline{\partial}_{k,h}u(x)=\frac{u(x-he_k)-2u(x)+u(x+he_k)}{h^2},\:\:\: k=1,2,
+\end{split}
+\end{equation}
+gdzie $e_k$ to $k-ty$ wektor jednostkowy.
+Wprowadzamy siatkę dla $h_1=\frac{e-d}{N}$, $h_2=\frac{g-f}{N}$:
+\begin{equation}
+\overline{\Omega}_{h_1,h_2}=\{(d+kh_1,f+lh_2)\}_{k,l=0}^{N}
+\end{equation}
+i jej odpowiednie podzbiory $\Omega_{h_1,h_2}=\{(d+kh_1,f+lh_2)\}_{k,l=1}^{N-1}\subset \Omega$, $\partial\Omega_{h_1,h_2}=\{(d+kh_1,f+lh_2)\}_{k=\{0,N\},\: l=0,\dots, N, l=\{0,N\},\: k=0,\dots,N}\subset\partial\Omega$.
+Definiujemy następujące zadanie dyskretne: chcemy znaleźć funkcję $u_{h_1,h_2}$ określoną na siatce $\overline{\Omega}_{h_1,h_2}$ taką, że
+\begin{empheq}[left ={\empheqlbrace}]{alignat* = 2}
+-\sum_{k=1,2}\partial\overline{\partial}_{k,h_k}u_{h_1,h_2}(x)+\sum_{k=1,2}b_k\partial_{k,h_k}u_{h_1,h_2}(x)+cu_{h_1,h_2}(x)=f(x)\:\:\:&x\in\Omega_{h_1,h_2}, \\
+u(x)=g(x)\:\:\: &x\in\partial\Omega_{h_1,h_2}
+\end{empheq}
+Oznaczmy dla uproszczenia zapisu $u_{k,l}=u_{h_1,h_2}(x_{k,l})=u_{h_1,h_2}(d+kh_1,f+lh_2)$ oraz $f_{k,l}=f(x_{k,l})=f(d+kh_1,f+lh_2)$. Otrzymujemy wówczas następujący układ liniowy.
+\begin{empheq}[left ={\empheqlbrace}]{alignat* = 6}
+&\frac{-u_{k+1,l}+2u_{k,l}-u_{k-1,l}}{h^2_1}+\frac{-u_{k,l+1}+2u_{k,l}-u_{k,l-1}}{h^2_2}+\frac{u_{k+1,l}-u_{k,l}}{h_1}+\frac{u_{k,l+1}-u_{k,l}}{h_2}+\\
+&+cu_{k,l}=f_{k,l},\:\:\: k,l=1,\dots,N-1\\
+\:\:&u_{0,l}=g(d,f+lh_2),\:\:\: l=0,\dots,N\\
+\:\:&u_{k,N}=g(d+kh_1,g),\:\:\: k=0,\dots,N\\
+\:\:&u_{N,l}=g(e,f+lh_2),\:\:\: l=0,\dots,N\\
+\:\:&u_{k,0}=g(d+kh_1,f),\:\:\: k=0,\dots,N
+\end{empheq}
+Co można zapisać w postaci macierzowej podstawiając warunki brzegowe jako
+\begin{align*}
+\begin{pmatrix}
+a_{1,1} & a_{1,2} & \cdots & a_{1,N-1} \\
+a_{2,1} & a_{2,2} & \cdots & a_{2,N} \\
+\vdots  & \vdots  & \ddots & \vdots  \\
+a_{N-1,1} & a_{N-1,2} & \cdots & a_{N-1,N-1} 
+\end{pmatrix}
+\begin{bmatrix}
+  u_{1,1}  \\
+  u_{1,2}  \\
+  \vdots \\
+  u_{1,N-1}  \\
+  u_{2,1}  \\
+  u_{2,2}  \\
+  \vdots \\
+  u_{N-1,N-2}  \\
+  u_{N-1,N-1}  \\
+\end{bmatrix} =
+\begin{bmatrix}
+f_{1,1}+\frac{g(d,f)}{h_1^2}+\frac{g(d,f)}{h_2^2}  \\
+  f_{1,2}+\frac{g(d,f+2h_2)}{h_2^2}  \\
+  \vdots \\
+  f_{1,N-1}+\frac{g(d,f+(N-1)h_2)}{h_2^2}  \\
+  f_{2,1}+\frac{g(d+2h_1,f)}{h_1^2}  \\
+  f_{2,2}  \\
+  \vdots \\
+  f_{N-1,N-2}+\frac{g(e,f+(N-2)h_2)}{h_1^2}  \\
+  f_{N-1,N-1}+\frac{g(e,g)}{h_1^2}+\frac{g(e,g)}{h_2^2}  \\
+\end{bmatrix}
+\end{align*}
+\bibliographystyle{apacite}
+\bibliography{reference}
+\end{document}

@@ -9,7 +9,7 @@ function [V,H,beta] = arnoldi0(A,m,r_0)
       w = A*V(:,j);
       for i=1:j
           H(i,j) = w'*V(:,i);
-          z = w - H(i,j)*V(:,i);
+          w = w - H(i,j)*V(:,i);
       end
       H(j+1,j)=norm(w,2);
       if (H(j+1,j) == 0)
